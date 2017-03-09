@@ -1,0 +1,49 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.2.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+jar {
+	baseName = 'demo'
+	version = '0.0.1-SNAPSHOT'
+}
+
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	
+	
+	compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+  
+	// https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch
+compile group: 'org.elasticsearch', name: 'elasticsearch', version: '1.7.4'
+
+		
+	
+	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.7'
+
+// https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper
+compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '9.0.0.M11'
+
+}
