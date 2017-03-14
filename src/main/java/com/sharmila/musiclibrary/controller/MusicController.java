@@ -1,6 +1,9 @@
 package com.sharmila.musiclibrary.controller;
 
 
+import java.util.List;
+
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sharmila.musiclibrary.api.MusicManager;
 import com.sharmila.musiclibrary.api.domain.Music;
+import com.sharmila.musiclibrary.api.domain.SearchTerms;
 
 @RestController
 public class MusicController {
@@ -48,6 +52,23 @@ public class MusicController {
 		String response=musicManager.delete(id);
 		
 		
+		return response;
+	}
+	
+	
+	@RequestMapping(value="/bulk",method=RequestMethod.POST)
+	public String insertBulk(@RequestBody List<Music> music){
+		
+		musicManager.bulkTest(music);
+		return "bulk insert";
+	}
+	
+	
+	@RequestMapping(value="/search",method=RequestMethod.GET)
+	public String search(){
+		
+		//String response=musicManager.search(keyword);
+		String response=musicManager.searchAll();
 		return response;
 	}
 	
