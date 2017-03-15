@@ -1,11 +1,10 @@
 package com.sharmila.musiclibrary.api.domain;
 
-public class Music {
-	private String id;
+public class Album {
 	private String title;
 	private String composer;
 	private String singer;
-	
+	private String price;
 	
 	
 	public String getTitle() {
@@ -26,13 +25,10 @@ public class Music {
 	public void setSinger(String singer) {
 		this.singer = singer;
 	}
-	public String getId() {
-		return id;
+	public String getPrice() {
+		return price;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public void setPrice(String price) {
+		this.price = price;
 	}
-	
-	
-	
 }

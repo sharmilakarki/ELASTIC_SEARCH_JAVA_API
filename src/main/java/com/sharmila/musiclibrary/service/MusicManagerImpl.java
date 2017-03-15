@@ -2,8 +2,8 @@ package com.sharmila.musiclibrary.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class MusicManagerImpl implements MusicManager{
 	@Autowired
 	private MusicRepository musicRepository;
 	
-	
+
 	@Override
 	public void create(Music music) {
 		musicRepository.create(music);
@@ -73,9 +73,27 @@ public class MusicManagerImpl implements MusicManager{
 	}
 
 	@Override
-	public String searchAll() {
+	public List<Map<String,Object>>   searchAll() {
 		
 		return musicRepository.searchAll();
+	}
+
+	@Override
+	public List<Map<String,Object>> sortByAscOrder(String fieldName) {
+	
+		return musicRepository.sortByAscOrder(fieldName);
+	}
+
+	@Override
+	public List<Map<String,Object>> sortByDescOrder(String fieldName) {
+	
+		return musicRepository.sortByDescOrder(fieldName);
+	}
+
+	@Override
+	public List<Map<String, Object>> sortPrice(String fieldName) {
+		
+		return musicRepository.sortBy(fieldName);
 	}
 	
 	
