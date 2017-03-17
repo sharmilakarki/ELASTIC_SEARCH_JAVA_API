@@ -1,7 +1,9 @@
 package com.sharmila.musiclibrary.controller;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -10,12 +12,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sharmila.musiclibrary.api.MusicManager;
 import com.sharmila.musiclibrary.api.domain.Music;
 
+
 @RestController
+@RequestMapping(value="/music")
 public class MusicController {
 	
 	@Autowired
@@ -23,35 +28,69 @@ public class MusicController {
 	
 	private  List<Map<String,Object>> response=new ArrayList<>();
 	
-	@RequestMapping(value="/create",method=RequestMethod.POST)
-	public String createIndex(@RequestBody Music music){
+	@RequestMapping(method=RequestMethod.POST)
+	public boolean createIndex(@RequestBody Music music){
 		
-		System.out.println(music.getId());
-		musicManager.create(music);
-		return "index created";
+		boolean reponse=musicManager.create(music);
+		return reponse;
 	}
 	
-	@RequestMapping(value="/update",method=RequestMethod.POST)
-	public String updateIndex(@RequestBody Music music){
-		musicManager.update(music);
-		return "index updated";
+	//TODO: user send id in param
+	@RequestMapping(value="/{id}",method=RequestMethod.PUT)
+	public boolean updateIndex(@PathVariable(value="id")String id,@RequestBody Music music) throws IOException{
+		boolean	response=musicManager.update(music,id);
+		return response;
 	}
 	
-	@RequestMapping(value="/getResponse/{id}",method=RequestMethod.GET)
-	public String getIndex(@PathVariable(value="id")String id){
+//	TODO: add default sorting to desc order by modified date
+//	user can send param sortby & sortorder
+//	add pagination =user can send param page and size
 	
-		String response=musicManager.getById(id);
+	@RequestMapping(method=RequestMethod.GET)
+	public List<Map<String,Object>> search(
+			@RequestParam(value="sortBy",required=false)String sortBy,
+			@RequestParam(value="sortOrder",required=false)String sortOrder,
+			@RequestParam(value="size",required=false)Integer size,
+			@RequestParam(value="from",required=false)Integer from){
+	
+		System.out.println("recieved size "+size);
+		if(sortBy==null){
+			sortBy="modifiedDate";
+		}
+
+		if(sortOrder==null  || sortOrder=="DESC"){
+			sortOrder="DESC";
+		}
+		if(size==null && from==null){
+			size=10;
+			from=0;
+		}
+		if(from!=null){
+			from=from+1;
+		}
+		if(from==null){
+			from=0;
+		}
+		
+		System.out.println("sort by "+sortBy +" sort order "+sortOrder + " size "+size +" from "+from );
+		response=	musicManager.searchAll(sortBy, sortOrder, size, from);
+
+
+		return response;
+	}
+	
+	@RequestMapping(value="/{id}",method=RequestMethod.GET)
+	public List<Map<String, Object>>  getById(@PathVariable(value="id")String id){
+	
+		 response=musicManager.getById(id);
 		System.out.println(response);
-		
-		String value=new String(response.getBytes());
-		return value;
+		return response;
 	}
 	
-	@RequestMapping(value="/delete/{id}",method=RequestMethod.POST)
-	public String deleteIndexItems(@PathVariable(value="id")String id){
+	@RequestMapping(value="/{id}",method=RequestMethod.DELETE)
+	public boolean deleteIndexItems(@PathVariable(value="id")String id){
 		System.out.println("delete api called : id"+id);
-		String response=musicManager.delete(id);
-		
+		boolean response=musicManager.delete(id);
 		
 		return response;
 	}
@@ -65,43 +104,4 @@ public class MusicController {
 	}
 	
 	
-	@RequestMapping(value="/search",method=RequestMethod.GET)
-	public List<Map<String,Object>> search(){
-		
-	
-		response=	musicManager.searchAll();
-
-
-		return response;
-	}
-	
-	@RequestMapping(value="/sortasc/{fieldName}",method=RequestMethod.GET)
-	public List<Map<String,Object>> sortByAscOrder(@PathVariable(value="fieldName")String fieldName){
-		
-		
-		response=	musicManager.sortByAscOrder(fieldName);
-
-
-		return response;
-	}
-	
-	@RequestMapping(value="/sortdesc/{fieldName}",method=RequestMethod.GET)
-	public List<Map<String,Object>> sortByDescOrder(@PathVariable(value="fieldName")String fieldName){
-		
-		
-		response=	musicManager.sortByDescOrder(fieldName);
-
-
-		return response;
-	}
-	
-	@RequestMapping(value="/sort/{fieldName}",method=RequestMethod.GET)
-	public List<Map<String,Object>> sortByAscPrice(@PathVariable(value="fieldName")String fieldName){
-		
-		
-		response=	musicManager.sortPrice(fieldName);
-
-
-		return response;
-	}
 }

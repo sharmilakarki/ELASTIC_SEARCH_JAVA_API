@@ -2,22 +2,16 @@ package com.sharmila.musiclibrary.api.domain;
 
 public class SearchTerms {
 
-	private String index;
-	private String type;
+	private String keyword;
 	private String searchTerm;
 	
 	
-	public String getIndex() {
-		return index;
+	
+	public String getKeyword() {
+		return keyword;
 	}
-	public void setIndex(String index) {
-		this.index = index;
-	}
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		this.type = type;
+	public void setKeyword(String keyword) {
+		this.keyword = keyword;
 	}
 	public String getSearchTerm() {
 		return searchTerm;

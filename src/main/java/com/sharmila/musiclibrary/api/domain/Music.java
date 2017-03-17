@@ -1,10 +1,14 @@
 package com.sharmila.musiclibrary.api.domain;
 
+import java.util.Date;
+
 public class Music {
-	private String id;
+	
 	private String title;
 	private String composer;
 	private String singer;
+	private Date createdDate;
+	private Date modifiedDate;
 	
 	
 	
@@ -26,11 +30,18 @@ public class Music {
 	public void setSinger(String singer) {
 		this.singer = singer;
 	}
-	public String getId() {
-		return id;
+	
+	public Date getCreatedDate() {
+		return createdDate;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
 	}
 	
 	

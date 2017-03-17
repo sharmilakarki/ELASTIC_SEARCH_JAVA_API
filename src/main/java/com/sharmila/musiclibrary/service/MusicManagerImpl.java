@@ -1,6 +1,7 @@
 package com.sharmila.musiclibrary.service;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -24,30 +25,30 @@ public class MusicManagerImpl implements MusicManager{
 	
 
 	@Override
-	public void create(Music music) {
-		musicRepository.create(music);
-		
+	public boolean create(Music music) {
+		music.setCreatedDate(new Date());
+		music.setModifiedDate(new Date());
+		boolean response=musicRepository.create(music);
+		return response;
 	}
 
 	@Override
-	public String delete(String id) {
+	public boolean delete(String id) {
 		
 		return musicRepository.delete(id);
 	}
 
 	@Override
-	public void update(Music music) {
-		try {
-			musicRepository.update(music);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public boolean update(Music music,String id) throws IOException {
 		
+
+			music.setModifiedDate(new Date());
+			return musicRepository.update(music,id);
+	
 	}
 
 	@Override
-	public String getById(String id) {
+	public List<Map<String, Object>>  getById(String id) {
 		
 		return musicRepository.getById(id);
 	}
@@ -60,41 +61,14 @@ public class MusicManagerImpl implements MusicManager{
 		 musicRepository.bulkTest(music);
 	}
 
-	@Override
-	public String search(SearchTerms keyword) {
-		
-		return musicRepository.search(keyword);
-	}
-
-	@Override
-	public String searchScroll(SearchTerms keyword) {
-		
-		return musicRepository.searchScroll(keyword);
-	}
-
-	@Override
-	public List<Map<String,Object>>   searchAll() {
-		
-		return musicRepository.searchAll();
-	}
-
-	@Override
-	public List<Map<String,Object>> sortByAscOrder(String fieldName) {
 	
-		return musicRepository.sortByAscOrder(fieldName);
-	}
 
 	@Override
-	public List<Map<String,Object>> sortByDescOrder(String fieldName) {
-	
-		return musicRepository.sortByDescOrder(fieldName);
-	}
-
-	@Override
-	public List<Map<String, Object>> sortPrice(String fieldName) {
+	public List<Map<String,Object>>   searchAll(String sortBy,String sortOrder,int size,int from) {
 		
-		return musicRepository.sortBy(fieldName);
+		return musicRepository.searchAll(sortBy, sortOrder, size, from);
 	}
+
 	
 	
 	
