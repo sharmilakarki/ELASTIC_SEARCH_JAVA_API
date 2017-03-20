@@ -26,8 +26,8 @@ public class MusicManagerImpl implements MusicManager{
 
 	@Override
 	public boolean create(Music music) {
-		music.setCreatedDate(new Date());
-		music.setModifiedDate(new Date());
+		music.setCreatedDate(new Date().getTime());
+		music.setModifiedDate(new Date().getTime());
 		boolean response=musicRepository.create(music);
 		return response;
 	}
@@ -42,7 +42,7 @@ public class MusicManagerImpl implements MusicManager{
 	public boolean update(Music music,String id) throws IOException {
 		
 
-			music.setModifiedDate(new Date());
+			music.setModifiedDate(new Date().getTime());
 			return musicRepository.update(music,id);
 	
 	}

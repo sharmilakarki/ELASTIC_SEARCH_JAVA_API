@@ -7,8 +7,8 @@ public class Music {
 	private String title;
 	private String composer;
 	private String singer;
-	private Date createdDate;
-	private Date modifiedDate;
+	private Long createdDate;
+	private Long modifiedDate;
 	
 	
 	
@@ -30,19 +30,19 @@ public class Music {
 	public void setSinger(String singer) {
 		this.singer = singer;
 	}
-	
-	public Date getCreatedDate() {
+	public Long getCreatedDate() {
 		return createdDate;
 	}
-	public void setCreatedDate(Date createdDate) {
+	public void setCreatedDate(Long createdDate) {
 		this.createdDate = createdDate;
 	}
-	public Date getModifiedDate() {
+	public Long getModifiedDate() {
 		return modifiedDate;
 	}
-	public void setModifiedDate(Date modifiedDate) {
+	public void setModifiedDate(Long modifiedDate) {
 		this.modifiedDate = modifiedDate;
 	}
+	
 	
 	
 	

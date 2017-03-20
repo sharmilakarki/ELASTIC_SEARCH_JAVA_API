@@ -99,12 +99,35 @@ public class MusicRepository {
 		try {
 			byte[] json = mapper.writeValueAsBytes(music);
 			client = getClient();
-			UpdateRequest updateRequest = new UpdateRequest("musiclibrary", "music", id)
-					.doc(jsonBuilder().startObject()
-							.field("singer", music.getSinger())
-							.field("composer", music.getComposer())
-							.field("title", music.getTitle())
-							.endObject());
+			
+			
+			IndexRequest indexRequest = new IndexRequest("musiclibrary",  "music", id)
+			        .source(jsonBuilder()
+			            .startObject()
+			            .field("singer", music.getSinger())
+						.field("composer", music.getComposer())
+						.field("title", music.getTitle())
+						.field("modifiedDate",music.getModifiedDate())
+			            .endObject());
+			UpdateRequest updateRequest = new UpdateRequest("musiclibrary",  "music", id)
+			        .doc(jsonBuilder()
+			            .startObject()
+			            .field("singer", music.getSinger())
+						.field("composer", music.getComposer())
+						.field("title", music.getTitle())
+						.field("modifiedDate",music.getModifiedDate())
+			            .endObject())
+			        .upsert(indexRequest);   
+			
+			
+			
+//			UpdateRequest updateRequest = new UpdateRequest("musiclibrary", "music", id)
+//					.doc(jsonBuilder().startObject()
+//							.field("singer", music.getSinger())
+//							.field("composer", music.getComposer())
+//							.field("title", music.getTitle())
+//							.field("modifiedDate",music.getModifiedDate())
+//							.endObject());
 			UpdateResponse response = client.update(updateRequest).get();
 			
 			value=	response.isCreated();
@@ -139,28 +162,30 @@ public class MusicRepository {
 		if(sortOrder.equalsIgnoreCase("ASC")){
 			srtOrder = SortOrder.ASC;
 		}
-		else if(sortOrder.equalsIgnoreCase("DESC")){
-			srtOrder=SortOrder.DESC;
-		}
+	
 		else{
 			srtOrder=SortOrder.DESC;
 		}
 		
+		System.out.println("Repository---->> sort by "+sortBy +" sort order "+sortOrder + " size "+size +" from "+from );
 		
-			System.out.println("---"+srtOrder);
-			response = client.prepareSearch("musiclibrary").setTypes("music").addSort(sortBy,srtOrder)
-					.setFrom(from)
+
+			response = client.prepareSearch("musiclibrary").setTypes("music")
+					.addSort(sortBy,srtOrder)	
 					.setSize(size)
-					
+					.setFrom(from)
 					.execute().actionGet();
 	
-			
+			System.out.println(response.getHits().getTotalHits());
 		SearchHit[] searchHits = response.getHits().getHits();
 		List<Map<String, Object>> mapList = new ArrayList<>();
 
 		for (SearchHit s : searchHits) {
-
+			System.out.println();
 			mapList.add(s.getSource());
+			for(Map.Entry<String, Object> e:s.getSource().entrySet()){
+				System.out.println(e.getKey() + " "+e.getValue());
+			}
 			sourceMap.put("source", mapList);
 
 		}

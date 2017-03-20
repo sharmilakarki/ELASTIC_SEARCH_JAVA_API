@@ -51,24 +51,24 @@ public class MusicController {
 			@RequestParam(value="sortBy",required=false)String sortBy,
 			@RequestParam(value="sortOrder",required=false)String sortOrder,
 			@RequestParam(value="size",required=false)Integer size,
-			@RequestParam(value="from",required=false)Integer from){
-	
+			@RequestParam(value="page",required=false)Integer page){
+		Integer from=1;
 		System.out.println("recieved size "+size);
 		if(sortBy==null){
 			sortBy="modifiedDate";
 		}
-
-		if(sortOrder==null  || sortOrder=="DESC"){
+		if(sortOrder==null){
 			sortOrder="DESC";
 		}
-		if(size==null && from==null){
+		
+		if(size==null && page==null){
 			size=10;
 			from=0;
 		}
-		if(from!=null){
-			from=from+1;
+		if(page!=null){
+			from=(page-1)*size;
 		}
-		if(from==null){
+		else{
 			from=0;
 		}
 		
