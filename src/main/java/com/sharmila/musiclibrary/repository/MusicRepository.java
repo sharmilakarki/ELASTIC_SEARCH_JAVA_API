@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
@@ -29,15 +30,21 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortOrder;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sharmila.musiclibrary.api.domain.Company;
 import com.sharmila.musiclibrary.api.domain.Music;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 @Component
 public class MusicRepository {
@@ -50,8 +57,6 @@ public class MusicRepository {
 	public static Map<String, Object> sourceMap = new HashMap<String, Object>();
 	private static List<JSONObject> jsonData = new ArrayList<JSONObject>();
 
-
-	
 	public Client getClient() {
 		Settings settings = ImmutableSettings.settingsBuilder().put("client.transport.sniff", true)
 				.put("number_of_shards", 3).put("node.client", true)
@@ -67,15 +72,15 @@ public class MusicRepository {
 
 	public boolean create(Music music) {
 		ObjectMapper mapper = new ObjectMapper(); // create once, reuse
-		boolean value=false;
+		boolean value = false;
 		// generate json
 		try {
 			byte[] json = mapper.writeValueAsBytes(music);
 			System.out.println(json);
 			client = getClient();
-			IndexResponse response=	client.prepareIndex("musiclibrary", "music").setSource(json).execute().actionGet();
-			
-			value=response.isCreated();
+			IndexResponse response = client.prepareIndex("musiclibrary", "music").setSource(json).execute().actionGet();
+
+			value = response.isCreated();
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -87,51 +92,39 @@ public class MusicRepository {
 		System.out.println("----" + id);
 		client = getClient();
 		DeleteResponse response = client.prepareDelete("musiclibrary", "music", id).execute().actionGet();
-		
+
 		return response.isFound();
 	}
 
-	public boolean update(Music music,String id) throws IOException {
+	public boolean update(Music music, String id) throws IOException {
 
 		ObjectMapper mapper = new ObjectMapper();
-		
-		boolean value=false;
+
+		boolean value = false;
 		try {
 			byte[] json = mapper.writeValueAsBytes(music);
 			client = getClient();
-			
-			
-			IndexRequest indexRequest = new IndexRequest("musiclibrary",  "music", id)
-			        .source(jsonBuilder()
-			            .startObject()
-			            .field("singer", music.getSinger())
-						.field("composer", music.getComposer())
-						.field("title", music.getTitle())
-						.field("modifiedDate",music.getModifiedDate())
-			            .endObject());
-			UpdateRequest updateRequest = new UpdateRequest("musiclibrary",  "music", id)
-			        .doc(jsonBuilder()
-			            .startObject()
-			            .field("singer", music.getSinger())
-						.field("composer", music.getComposer())
-						.field("title", music.getTitle())
-						.field("modifiedDate",music.getModifiedDate())
-			            .endObject())
-			        .upsert(indexRequest);   
-			
-			
-			
-//			UpdateRequest updateRequest = new UpdateRequest("musiclibrary", "music", id)
-//					.doc(jsonBuilder().startObject()
-//							.field("singer", music.getSinger())
-//							.field("composer", music.getComposer())
-//							.field("title", music.getTitle())
-//							.field("modifiedDate",music.getModifiedDate())
-//							.endObject());
+
+			IndexRequest indexRequest = new IndexRequest("musiclibrary", "music", id).source(jsonBuilder().startObject()
+					.field("singer", music.getSinger()).field("composer", music.getComposer())
+					.field("title", music.getTitle()).field("modifiedDate", music.getModifiedDate()).endObject());
+			UpdateRequest updateRequest = new UpdateRequest("musiclibrary", "music", id).doc(jsonBuilder().startObject()
+					.field("singer", music.getSinger()).field("composer", music.getComposer())
+					.field("title", music.getTitle()).field("modifiedDate", music.getModifiedDate()).endObject())
+					.upsert(indexRequest);
+
+			// UpdateRequest updateRequest = new UpdateRequest("musiclibrary",
+			// "music", id)
+			// .doc(jsonBuilder().startObject()
+			// .field("singer", music.getSinger())
+			// .field("composer", music.getComposer())
+			// .field("title", music.getTitle())
+			// .field("modifiedDate",music.getModifiedDate())
+			// .endObject());
 			UpdateResponse response = client.update(updateRequest).get();
-			
-			value=	response.isCreated();
-			
+
+			value = response.isCreated();
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -139,70 +132,63 @@ public class MusicRepository {
 		return value;
 	}
 
-	public List<Map<String, Object>>  getById(String id) {
+	public List<Map<String, Object>> getById(String id) {
 
 		client = getClient();
-		GetResponse response = client.prepareGet("musiclibrary", "music", id).execute()
-				.actionGet();
-		
+		GetResponse response = client.prepareGet("musiclibrary", "music", id).execute().actionGet();
+
 		List<Map<String, Object>> mapList = new ArrayList<>();
-		
+
 		Map<String, Object> result = response.getSource();
-		mapList.add(result);		
+		mapList.add(result);
 		return mapList;
-		
+
 	}
 
-	
-
-	public List<Map<String, Object>> searchAll(String sortBy,String sortOrder,int size,int from) {
+	public List<Map<String, Object>> searchAll(String sortBy, String sortOrder, int size, int from) {
 		client = getClient();
-		SearchResponse response=null;
+		SearchResponse response = null;
 		SortOrder srtOrder;
-		if(sortOrder.equalsIgnoreCase("ASC")){
+		if (sortOrder.equalsIgnoreCase("ASC")) {
 			srtOrder = SortOrder.ASC;
 		}
-	
-		else{
-			srtOrder=SortOrder.DESC;
-		}
-		
-		System.out.println("Repository---->> sort by "+sortBy +" sort order "+sortOrder + " size "+size +" from "+from );
-		
 
-			response = client.prepareSearch("musiclibrary").setTypes("music")
-					.addSort(sortBy,srtOrder)	
-					.setSize(size)
-					.setFrom(from)
-					.execute().actionGet();
-	
-			System.out.println(response.getHits().getTotalHits());
+		else {
+			srtOrder = SortOrder.DESC;
+		}
+
+		System.out.println(
+				"Repository---->> sort by " + sortBy + " sort order " + sortOrder + " size " + size + " from " + from);
+
+		response = client.prepareSearch("musiclibrary").setTypes("music").addSort(sortBy, srtOrder).setSize(size)
+				.setFrom(from).execute().actionGet();
+
+		System.out.println(response.getHits().getTotalHits());
 		SearchHit[] searchHits = response.getHits().getHits();
 		List<Map<String, Object>> mapList = new ArrayList<>();
 
 		for (SearchHit s : searchHits) {
 			System.out.println();
 			mapList.add(s.getSource());
-			for(Map.Entry<String, Object> e:s.getSource().entrySet()){
-				System.out.println(e.getKey() + " "+e.getValue());
+			for (Map.Entry<String, Object> e : s.getSource().entrySet()) {
+				System.out.println(e.getKey() + " " + e.getValue());
 			}
 			sourceMap.put("source", mapList);
 
 		}
-		
+
 		return mapList;
 
 	}
 
-	
 	@JsonProperty("parameters")
 	@XmlElement(required = true)
-	public void bulkTest(List<Music> music) {
+	public void bulkTest(List<Company> companyList) {
 		client = getClient();
 		ObjectMapper mapper = new ObjectMapper();
 
 		try {
-			byte[] json = mapper.writeValueAsBytes(music);
+			byte[] json = mapper.writeValueAsBytes(companyList);
 			BulkProcessor bulkProcessor = BulkProcessor.builder(client, new BulkProcessor.Listener() {
 
 				@Override
@@ -234,4 +220,35 @@ public class MusicRepository {
 		}
 
 	}
+
+	public void bulk(String companyList){
+		JSONParser parser = new JSONParser();
+		
+		Object obj;
+		try {
+			obj = parser.parse(companyList);
+			
+			 org.json.simple.JSONArray array = (org.json.simple.JSONArray)obj;
+			 System.out.println(array.get(0));
+			 client=getClient();
+			 BulkRequestBuilder reqBuilder=client.prepareBulk();
+			 byte[] json;
+			 for(int i=0;i<array.size();i++){
+				
+				try {
+					json = new ObjectMapper().writeValueAsBytes(array.get(i));
+					 reqBuilder.add(client.prepareIndex("musiclibrary","new").setSource(json));
+				} catch (JsonProcessingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			 }
+			 reqBuilder.execute().actionGet();
+		}catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+	}
+		
 }

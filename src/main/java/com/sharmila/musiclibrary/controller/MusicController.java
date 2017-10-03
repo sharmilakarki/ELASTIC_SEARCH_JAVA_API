@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sharmila.musiclibrary.api.MusicManager;
+import com.sharmila.musiclibrary.api.domain.Company;
 import com.sharmila.musiclibrary.api.domain.Music;
 
 
@@ -97,9 +98,9 @@ public class MusicController {
 	
 	
 	@RequestMapping(value="/bulk",method=RequestMethod.POST)
-	public String insertBulk(@RequestBody List<Music> music){
+	public String insertBulk(@RequestBody String companyList){
 		
-		musicManager.bulkTest(music);
+		musicManager.bulk(companyList);
 		return "bulk insert";
 	}
 	
