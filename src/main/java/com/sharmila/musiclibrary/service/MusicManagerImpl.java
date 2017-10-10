@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sharmila.musiclibrary.api.MusicManager;
-import com.sharmila.musiclibrary.api.domain.Company;
+
 import com.sharmila.musiclibrary.api.domain.Music;
 import com.sharmila.musiclibrary.api.domain.SearchTerms;
 import com.sharmila.musiclibrary.repository.MusicRepository;
@@ -52,14 +52,6 @@ public class MusicManagerImpl implements MusicManager{
 	public List<Map<String, Object>>  getById(String id) {
 		
 		return musicRepository.getById(id);
-	}
-
-	
-
-	@Override
-	public void bulkTest(List<Company> companyList) {
-		
-		 musicRepository.bulkTest(companyList);
 	}
 
 	

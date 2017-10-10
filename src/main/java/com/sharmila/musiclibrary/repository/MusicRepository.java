@@ -41,7 +41,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sharmila.musiclibrary.api.domain.Company;
+import com.sharmila.esclient.ElasticSearch;
 import com.sharmila.musiclibrary.api.domain.Music;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -51,25 +51,11 @@ public class MusicRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(MusicRepository.class);
 
-	private static final String clusterName = "sharmila";
-	private static Client client;
-	private static Node node;
+	
 	public static Map<String, Object> sourceMap = new HashMap<String, Object>();
 	private static List<JSONObject> jsonData = new ArrayList<JSONObject>();
 
-	public Client getClient() {
-		Settings settings = ImmutableSettings.settingsBuilder().put("client.transport.sniff", true)
-				.put("number_of_shards", 3).put("node.client", true)
-
-				.put("client.transport.ping_timeout", "60s").put("cluster.name", clusterName).build();
-		// TransportClient client = new TransportClient(settings);
-		@SuppressWarnings("resource")
-		Client client = new TransportClient(settings)
-				.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-
-		return client;
-	}
-
+	private Client client = ElasticSearch.CLIENT.getInstance();
 	public boolean create(Music music) {
 		ObjectMapper mapper = new ObjectMapper(); // create once, reuse
 		boolean value = false;
@@ -77,7 +63,7 @@ public class MusicRepository {
 		try {
 			byte[] json = mapper.writeValueAsBytes(music);
 			System.out.println(json);
-			client = getClient();
+			
 			IndexResponse response = client.prepareIndex("musiclibrary", "music").setSource(json).execute().actionGet();
 
 			value = response.isCreated();
@@ -90,7 +76,7 @@ public class MusicRepository {
 
 	public boolean delete(String id) {
 		System.out.println("----" + id);
-		client = getClient();
+		
 		DeleteResponse response = client.prepareDelete("musiclibrary", "music", id).execute().actionGet();
 
 		return response.isFound();
@@ -103,7 +89,7 @@ public class MusicRepository {
 		boolean value = false;
 		try {
 			byte[] json = mapper.writeValueAsBytes(music);
-			client = getClient();
+			
 
 			IndexRequest indexRequest = new IndexRequest("musiclibrary", "music", id).source(jsonBuilder().startObject()
 					.field("singer", music.getSinger()).field("composer", music.getComposer())
@@ -134,7 +120,7 @@ public class MusicRepository {
 
 	public List<Map<String, Object>> getById(String id) {
 
-		client = getClient();
+		
 		GetResponse response = client.prepareGet("musiclibrary", "music", id).execute().actionGet();
 
 		List<Map<String, Object>> mapList = new ArrayList<>();
@@ -146,7 +132,7 @@ public class MusicRepository {
 	}
 
 	public List<Map<String, Object>> searchAll(String sortBy, String sortOrder, int size, int from) {
-		client = getClient();
+		
 		SearchResponse response = null;
 		SortOrder srtOrder;
 		if (sortOrder.equalsIgnoreCase("ASC")) {
@@ -181,46 +167,7 @@ public class MusicRepository {
 
 	}
 
-	@JsonProperty("parameters")
-	@XmlElement(required = true)
-	public void bulkTest(List<Company> companyList) {
-		client = getClient();
-		ObjectMapper mapper = new ObjectMapper();
-
-		try {
-			byte[] json = mapper.writeValueAsBytes(companyList);
-			BulkProcessor bulkProcessor = BulkProcessor.builder(client, new BulkProcessor.Listener() {
-
-				@Override
-				public void beforeBulk(long executionId, BulkRequest request) {
-					System.out.println("---- before bulk");
-
-				}
-
-				@Override
-				public void afterBulk(long executionId, BulkRequest request, Throwable failure) {
-					System.out.println("---- after bulk");
-
-				}
-
-				@Override
-				public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
-					System.out.println("---- after 1 bulk");
-
-				}
-			}).setBulkActions(1000)
-
-					.setFlushInterval(TimeValue.timeValueSeconds(5)).setConcurrentRequests(1)
-					
-					.build();
-
-			bulkProcessor.add(new IndexRequest("musiclibrary", "music").source(json));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
+	
 	public void bulk(String companyList){
 		JSONParser parser = new JSONParser();
 		
@@ -230,7 +177,7 @@ public class MusicRepository {
 			
 			 org.json.simple.JSONArray array = (org.json.simple.JSONArray)obj;
 			 System.out.println(array.get(0));
-			 client=getClient();
+			
 			 BulkRequestBuilder reqBuilder=client.prepareBulk();
 			 byte[] json;
 			 for(int i=0;i<array.size();i++){
@@ -249,6 +196,34 @@ public class MusicRepository {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
+
+	}
+	
+	
+	public List<Map<String,String>> getCompanyLocation(){
+		
+	
+		
+		SearchResponse response = client.prepareSearch("musiclibrary").setTypes("new")
+				.execute().actionGet();
+
+		System.out.println(response.getHits().getTotalHits());
+		SearchHit[] searchHits = response.getHits().getHits();
+		List<Map<String, Object>> mapList = new ArrayList<>();
+		Map<String,String> countryLocationMap=new HashMap<>();
+		for (SearchHit s : searchHits) {
+			System.out.println();
+			mapList.add(s.getSource());
+			for (Map.Entry<String, Object> e : s.getSource().entrySet()) {
+				System.out.println(e.getKey() + " " + e.getValue());
+				if(e.getKey().equals("company_linkedin_country")){
+					countryLocationMap.put(e.getKey(), e.getValue().toString());
+				}
+			}
+			sourceMap.put("source", mapList);
+
+		}
+		return null;
 	}
 		
 }
